@@ -1,39 +1,15 @@
-# ME-APIC Reviewer Dataset
+# Calibrated ME-APIC reviewer dataset
 
-This repository contains one dataset and this short description only.
+This release contains ME_APIC_monte_carlo_dataset.csv (2,000 controller records), summary.json (paired statistics and selected deterministic sweep summaries), and this description.
 
-## Dataset
+The controller uses nine controllable modes, an 18-dimensional state, and rho = 0.012907490610006619. Closed-loop simulations use the full finite-element plant.
 
-`ME_APIC_monte_carlo_dataset.csv` contains the complete paired Monte Carlo simulation records used to evaluate pantograph-catenary control robustness.
+## Paired design
 
-- Observations: 2,000 rows
-- Speeds: 300 and 350 km/h
-- Trials: 200 paired trials at each speed
-- Strategies per trial: Passive, Continuous LQR, T-APIC, force-error E-APIC, and ME-APIC
-- Pairing key: `speed_kmh` + `trial`
-- Randomization key: `scenario_seed`
+Five methods (Passive, Continuous, T-APIC, E-APIC, ME-APIC) share 200 scenarios at each of 300 and 350 km/h. Pair records by speed_kmh and trial; scenario_seed identifies the shared realization. There are 400 speed-trial scenarios, not 2,000 independent paired scenarios.
 
-Within each `(speed_kmh, trial)` pair, all five strategies use the same pantograph/catenary parameter perturbations, irregularity scale, measurement-noise setting, actuator delay, and actuator time constant. This paired design permits direct within-trial comparisons against Passive.
+For each controller and trial, passive-relative improvement is 100 * (sigma_passive - sigma_controller) / sigma_passive. Summary improvement percentages average these within-trial percentages. ME-APIC means are 2.379327% at 300 km/h and 0.710968% at 350 km/h.
 
-## Main response columns
+Mechanical-work and squared-force reductions average trial-wise ratios against the paired Continuous controller. Energy-start shares exclude initialization; simultaneous energy/deadline crossings are recorded separately. At 350 km/h, energy crossings account for 986/1400 non-initial ME-APIC starts.
 
-- `mean_force_N`, `std_force_N`, `cv_percent`: contact-force statistics
-- `min_force_N`, `max_force_N`: force extrema
-- `contact_loss_percent`: percentage of samples with zero contact force
-- `NoC`: number of controller activations
-- `ATR_percent`: activation-time ratio
-- `effort_N2s`: integral of squared actuator force
-- `mechanical_work_J`: absolute actuator-interface mechanical work
-- `signed_mechanical_work_J`: signed mechanical work
-
-## Scenario columns
-
-`measurement_noise_std_N`, `actuator_delay_s`, `actuator_time_constant_s`, `irregularity_scale`, `mass_scale_1` to `mass_scale_3`, `stiffness_scale_1` to `stiffness_scale_3`, `damping_scale_3`, and `contact_stiffness_scale` define the shared uncertainty realization for each paired trial.
-
-## Suggested reviewer check
-
-For each speed and trial, compare a controller's `std_force_N` with the Passive row having the same pairing key. A positive passive-relative improvement is:
-
-`100 * (std_force_N_passive - std_force_N_controller) / std_force_N_passive`
-
-No source code, figures, manuscript files, or additional experiment outputs are included.
+The primary CSV provides force statistics, actuator utilization and costs, and shared parameter/noise/delay settings. It contains controller-level trial summaries, not raw force/state histories or executable FE simulation code. Deterministic sweep comparisons in the JSON are distinct from the 200-trial uncertainty statistics.
